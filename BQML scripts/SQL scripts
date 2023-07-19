@@ -1,0 +1,46 @@
+#########################################
+# CREATE MODEL STATEMENT
+#########################################
+
+CREATE OR REPLACE MODEL `<<dataset-name>>.txn-anomaly-autoenc`
+OPTIONS(
+  model_type='autoencoder',
+  activation_fn='relu',
+  batch_size=8,
+  dropout=0.2,  
+  hidden_units=[16, 4, 16],
+  learn_rate=0.001,
+  l1_reg_activation=0.0001,
+  max_iterations=10,
+  optimizer='adam'
+) AS 
+SELECT 
+  * EXCEPT(UPI_ref_no,eventTime___) 
+FROM 
+  `<<project-name>>.<<dataset-name>>.upi-txn-data`;
+
+#########################################
+# ANOMALY DETECTION FOR ALL RECORDS
+#########################################
+
+SELECT
+  *
+FROM
+  ML.DETECT_ANOMALIES(MODEL `<<dataset-name>>.txn-anomaly-autoenc`,
+                      STRUCT(0.02 AS contamination),
+                      TABLE `<<project-name>>.<<dataset-name>>.upi-txn-data`)
+where is_anomaly = true
+order by mean_squared_error desc
+
+#########################################
+# ANOMALY DETECTION FOR A SINGLE RECORD
+#########################################
+
+SELECT
+  *
+FROM
+  ML.DETECT_ANOMALIES(MODEL `<<dataset-name>>.txn-anomaly-autoenc`,
+                      STRUCT(0.1 AS contamination),
+                      (SELECT 'ad2001@yesbank' Payer_UPI_id,'xi9811@paytm' as Payee_UPI_id,
+                      9000 as txn_amt, date('2022-10-22') as txn_date, 23 as eventhour, 2 as week_day
+                        )  );
