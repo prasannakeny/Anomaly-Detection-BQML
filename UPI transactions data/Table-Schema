@@ -1,0 +1,10 @@
+# UPI transactions table schema
+
+UPI_ref_no	INTEGER	NULLABLE				
+Payer_UPI_id	STRING	NULLABLE				
+Payee_UPI_id	STRING	NULLABLE				
+Txn_amt	INTEGER	NULLABLE				
+eventTime___	TIMESTAMP	NULLABLE				
+Txn_date	DATE	NULLABLE				
+eventHour	INTEGER	NULLABLE				
+week_day	INTEGER	NULLABLE	
